@@ -62,11 +62,11 @@ export const pagesConfig = {
    * Projects listing page (/projects)
    */
   projects: {
-    title: 'Projects - Case Studies',
-    description: 'Detailed case studies showcasing problem-solving approach, technical decisions, and measurable impact across various engineering projects.',
-    heading: 'Projects',
-    intro: 'Case studies that demonstrate how I approach complex problems, make technical decisions, and deliver measurable impact. Each project tells the story of the challenge, the constraints, the decisions made, and the outcomes achieved.',
-  },
+  title: 'Projects - Case Studies',
+  description: 'A curated collection of projects that demonstrate my approach to data engineering, technical decision-making, and building reliable analytics-ready systems.',
+  heading: 'Projects',
+  intro: 'These projects show how I approach real-world data and engineering challenges, from designing ingestion and transformation workflows to making technical decisions that support reliable, analytics-ready outcomes. Each case study highlights the problem, the constraints, the approach taken, and the measurable results delivered.',
+},
   
   /**
    * Decisions listing page (/decisions)

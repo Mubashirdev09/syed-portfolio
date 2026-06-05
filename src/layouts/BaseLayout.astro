@@ -1,44 +1,4 @@
 ---
-/**
- * BaseLayout
- * 
- * Foundation layout component that provides the core HTML structure,
- * navigation, footer, and global styles for all pages. All other layouts extend
- * this base layout to ensure consistent site-wide structure.
- * 
- * Features:
- * - HTML document structure
- * - Favicon and manifest configuration
- * - Theme system with dark/light mode support
- * - Prevents flash of wrong theme on page load
- * - Astro View Transitions support with theme persistence
- * - Sticky navigation header
- * - Global CSS imports (global, typography, utilities)
- * - Responsive layout structure
- * 
- * Note: SEO meta tags (title, description, OG, Twitter) should be handled
- * by the SEO component in each page, not in this layout.
- * 
- * @component
- * 
- * @example
- * ```astro
- * ---
- * import BaseLayout from '../layouts/BaseLayout.astro';
- * import SEO from '../components/SEO.astro';
- * ---
- * 
- * <BaseLayout>
- *   <SEO 
- *     slot="head"
- *     title="About Me" 
- *     description="Learn more about my background"
- *   />
- *   <div>Page content goes here</div>
- * </BaseLayout>
- * ```
- */
-
 import { ClientRouter } from 'astro:transitions';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
@@ -55,10 +15,8 @@ import '../styles/utilities.css';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
     
-    <!-- SEO tags injected via slot -->
     <slot name="head" />
     
-    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -67,22 +25,69 @@ import '../styles/utilities.css';
     <meta name="theme-color" content="#0a0a0a" />
     
     <ClientRouter />
-    
+
     <!-- Prevent flash of wrong theme -->
     <script is:inline>
-      (function() {
-        const stored = localStorage.getItem('theme');
-        const theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-        document.documentElement.setAttribute('data-theme', theme);
+      (() => {
+        const getTheme = () => {
+          const stored = localStorage.getItem('theme');
+          if (stored === 'light' || stored === 'dark') return stored;
+          return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        };
+
+        const applyTheme = (theme) => {
+          document.documentElement.setAttribute('data-theme', theme);
+        };
+
+        applyTheme(getTheme());
       })();
     </script>
-    
-    <!-- Preserve theme during View Transitions -->
+
+    <!-- Keep theme during Astro view transitions -->
     <script is:inline>
-      document.addEventListener('astro:before-swap', (e) => {
-        const theme = document.documentElement.getAttribute('data-theme');
-        e.newDocument.documentElement.setAttribute('data-theme', theme);
+      document.addEventListener('astro:before-swap', (event) => {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        event.newDocument.documentElement.setAttribute('data-theme', currentTheme);
       });
+    </script>
+
+    <!-- Re-apply theme and bind toggle after page load / transitions -->
+    <script is:inline>
+      (() => {
+        const getTheme = () => {
+          const stored = localStorage.getItem('theme');
+          if (stored === 'light' || stored === 'dark') return stored;
+          return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        };
+
+        const applyTheme = (theme) => {
+          document.documentElement.setAttribute('data-theme', theme);
+        };
+
+        const toggleTheme = () => {
+          const current = document.documentElement.getAttribute('data-theme') || getTheme();
+          const next = current === 'dark' ? 'light' : 'dark';
+          localStorage.setItem('theme', next);
+          applyTheme(next);
+        };
+
+        const bindThemeToggle = () => {
+          const button = document.querySelector('[data-theme-toggle]');
+          if (!button || button.dataset.bound === 'true') return;
+
+          button.addEventListener('click', toggleTheme);
+          button.dataset.bound = 'true';
+        };
+
+        const initTheme = () => {
+          applyTheme(getTheme());
+          bindThemeToggle();
+        };
+
+        document.addEventListener('astro:page-load', initTheme);
+        document.addEventListener('astro:after-swap', initTheme);
+        initTheme();
+      })();
     </script>
     
     <style>
@@ -103,13 +108,16 @@ import '../styles/utilities.css';
       }
     </style>
   </head>
+
   <body>
     <header class="site-header" transition:persist>
       <Navigation />
     </header>
+
     <main>
       <slot />
     </main>
+
     <Footer />
   </body>
 </html>
