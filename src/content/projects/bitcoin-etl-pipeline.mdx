@@ -4,34 +4,34 @@ role: "Data Engineer"
 year: 2026
 duration: "2 months"
 teamSize: 1
-outcomeSummary: "Designed and built an automated data pipeline that processed 8.7 million Bitcoin transactions from AWS S3 through Azure Medallion layers into dashboard-ready outputs for Streamlit and Power BI."
-overview: "This project was built to answer a practical analytics question: when were Bitcoin transaction fees lowest, and what drove the major fee spike in 2017? I developed an end-to-end pipeline that ingests public blockchain data from AWS S3, stores raw data in Azure Data Lake Gen2, transforms it with PySpark in Azure Synapse, and serves insights through a public Streamlit dashboard and a Power BI report."
-problem: "Raw Bitcoin blockchain data was available in Parquet files on AWS S3, but it was not structured for analysis by investors or non-technical users. The challenge was to convert high-volume transaction data into a reliable analytics dataset that could explain fee behavior, network congestion, and transaction trends over time."
+outcomeSummary: "Built an automated cloud ETL pipeline that processed 8.7 million Bitcoin transactions from AWS S3 through Azure Medallion layers into analytics-ready datasets for Streamlit and Power BI."
+overview: "This project was built to answer a practical analytics question: when were Bitcoin transaction fees lowest, and what drove the major fee spike in 2017? I developed an end-to-end pipeline that ingests public blockchain data from AWS S3, stores it in Azure Data Lake Gen2, transforms it with PySpark in Azure Synapse, and delivers insights through a public Streamlit dashboard and a Power BI report."
+problem: "Public Bitcoin blockchain data was available in Parquet format on AWS S3, but it was not structured for analysis by investors or non-technical users. The challenge was to convert high-volume transaction data into a reliable analytics workflow that could explain fee behavior, network congestion, and transaction trends over time."
 constraints:
   - "Source data was distributed across 59 Parquet files in a public AWS S3 bucket."
   - "The pipeline needed to handle 8.7 million rows efficiently without exhausting local memory."
-  - "The full workflow had to be designed from scratch, including ingestion, transformation, orchestration, and delivery."
-  - "The project had to run with minimal cost using student-friendly cloud resources, open-source tools, and free tiers where possible."
-  - "Outputs needed to be understandable for both technical and non-technical audiences."
-approach: "I used a Medallion Architecture on Azure Data Lake Gen2 to separate raw, cleaned, and aggregated data. Bronze preserved the source data unchanged, Silver applied PySpark-based cleaning and feature engineering, and Gold produced a compact analytics layer for reporting. GitHub Actions automated the ingestion trigger, Azure Synapse handled large-scale transformation, Kafka simulated transaction streaming, and Airflow orchestrated the pipeline workflow."
+  - "The workflow had to cover ingestion, transformation, orchestration, and delivery end to end."
+  - "The solution needed to stay low-cost using student-friendly cloud resources, open-source tools, and free tiers where possible."
+  - "Outputs had to be understandable for both technical and non-technical audiences."
+approach: "I used Medallion Architecture on Azure Data Lake Gen2 to separate raw, cleaned, and aggregated data into Bronze, Silver, and Gold layers. GitHub Actions handled scheduled ingestion, Azure Synapse performed large-scale PySpark transformations, Kafka simulated streaming, Airflow orchestrated workflow tasks, and Streamlit plus Power BI delivered the final analytics outputs."
 keyDecisions:
   - decision: "Use Azure for storage and transformation while sourcing data from AWS S3"
-    reasoning: "Keeping ingestion on AWS S3 while using Azure Synapse and Data Lake allowed me to demonstrate cross-cloud data movement and use a unified analytics environment for transformation."
+    reasoning: "This setup demonstrated cross-cloud data movement while keeping storage, transformation, and reporting in one analytics environment."
     alternatives:
       - "Build the full pipeline only on AWS with Glue and Redshift"
       - "Use Databricks instead of Synapse"
   - decision: "Adopt Medallion Architecture"
-    reasoning: "Separating Bronze, Silver, and Gold layers made the pipeline easier to debug, document, and extend. It also preserved raw data for reprocessing and improved reporting performance."
+    reasoning: "Separating Bronze, Silver, and Gold layers made the system easier to debug, document, and extend, while preserving raw data for reprocessing and improving reporting performance."
     alternatives:
       - "Store only one cleaned dataset"
       - "Transform data directly into dashboard outputs"
   - decision: "Use GitHub Actions for scheduled automation"
-    reasoning: "GitHub Actions provided a simple and low-cost way to trigger the pipeline daily and integrate with Azure through a service principal and REST API."
+    reasoning: "GitHub Actions provided a simple, low-cost way to trigger the pipeline daily and integrate with Azure through a service principal and REST API."
     alternatives:
       - "Run the workflow manually"
       - "Use only Airflow for all scheduling"
   - decision: "Publish both Streamlit and Power BI outputs"
-    reasoning: "Streamlit made the project easy to share publicly and extend in Python, while Power BI supported business-style reporting and clearer storytelling for non-technical users."
+    reasoning: "Streamlit made the project easy to share publicly and extend in Python, while Power BI supported business-style reporting for non-technical viewers."
     alternatives:
       - "Use Streamlit only"
       - "Use Power BI only"
@@ -66,12 +66,12 @@ impact:
       value: "3.22%"
     - label: "Transaction Growth"
       value: "484% from 2013 to 2017"
-  qualitative: "The project turned raw blockchain files into a repeatable analytics workflow with clear business-facing outputs. It demonstrates batch ingestion, cloud storage design, PySpark transformation, orchestration, automation, and dashboard delivery in one end-to-end case study."
+  qualitative: "This project turned raw blockchain files into a repeatable analytics workflow with clear, business-facing outputs. It demonstrates ingestion, cloud storage design, PySpark transformation, orchestration, automation, and dashboard delivery in one end-to-end case study."
 learnings:
   - "Preserving a raw Bronze layer made debugging and reprocessing much easier."
   - "Large-file ingestion should be designed for memory efficiency from the beginning."
   - "Separating orchestration, transformation, and presentation layers made the system easier to reason about."
-  - "Public dashboards need a much smaller Gold layer than engineering pipelines."
+  - "Public dashboards require a much smaller Gold layer than engineering pipelines."
   - "Future iterations would benefit from stronger data quality checks and automated testing."
 featured: true
 status: "completed"
@@ -80,59 +80,94 @@ relatedProjects: []
 relatedDecisions: []
 ---
 
-## The Problem
+> **🔗 Project Links**  
+> **🐙 [GitHub Repository](https://github.com/Mubashirdev09/bitcoin-blockchain-etl-pipeline)**  
+> **🚀 [Live Dashboard](https://btc-etl-live.streamlit.app/)**
 
-Bitcoin transaction fees changed significantly between 2013 and 2017, with a notable spike in 2017. The goal of this project was to convert raw public blockchain data into an analytics-ready pipeline that could explain when fees were lowest, when they peaked, and how transaction growth affected those changes.
+## Impact
+
+- Processed 8.7 million Bitcoin transactions from 59 public Parquet files.
+- Built a daily automated workflow for ingestion and transformation.
+- Reduced raw blockchain data into a compact Gold layer for reporting.
+- Identified 2017 as the peak fee year, with average fees reaching 3.22%.
+- Measured 484% transaction growth from 2013 to 2017.
+- Showed that fee percentage had almost no correlation with transaction value alone, pointing instead to network congestion as the stronger driver.
+
+## Problem
+
+Public Bitcoin blockchain data was available, but it was not structured for practical analysis by investors or non-technical users. The challenge was to transform high-volume raw files into a reliable analytics pipeline that could explain fee behavior, transaction growth, and congestion patterns over time.
 
 ## Architecture
 
-The pipeline starts with public Bitcoin Parquet files stored on AWS S3. Raw files are ingested into Azure Data Lake Gen2 as the Bronze layer, transformed in Azure Synapse with PySpark into a cleaned Silver layer, and aggregated into a compact Gold layer for reporting. GitHub Actions triggers the workflow daily, Kafka simulates streaming transactions, Airflow manages orchestration, and the outputs are delivered through Streamlit and Power BI.
+The pipeline begins with public Bitcoin Parquet files stored on AWS S3. A scheduled GitHub Actions workflow triggers ingestion, Azure Data Lake Gen2 stores the Bronze layer, Azure Synapse with PySpark transforms the data into Silver and Gold layers, and the final analytics outputs are delivered through Streamlit and Power BI.
 
-```text
-AWS S3 (59 Parquet files)
-  ↓
-GitHub Actions trigger
-  ↓
-Azure Data Lake Gen2 — Bronze
-  ↓
-PySpark on Azure Synapse — Silver
-  ↓
-Gold analytics layer
-  ↓
-Kafka + Airflow
-  ↓
-Streamlit dashboard + Power BI report
+```mermaid
+flowchart TD
+    A[AWS S3<br/>59 Bitcoin Parquet files] --> B[GitHub Actions<br/>Daily trigger]
+    B --> C[Azure Data Lake Gen2<br/>Bronze layer]
+    C --> D[Azure Synapse + PySpark<br/>Silver transformations]
+    D --> E[Gold analytics layer]
+    E --> F[Streamlit dashboard]
+    E --> G[Power BI report]
+    D --> H[Apache Kafka]
+    H --> I[Apache Airflow orchestration]
+```
+
+## Medallion Layers
+
+I used Medallion Architecture to keep raw, cleaned, and reporting-ready data separate. This made the workflow easier to debug, easier to extend, and better suited for both engineering use and lightweight dashboard delivery.
+
+```mermaid
+flowchart LR
+    A[Bronze<br/>Raw data<br/>8,781,456 rows] --> B[Silver<br/>Cleaned + engineered<br/>8,772,036 rows]
+    B --> C[Gold<br/>Aggregated analytics<br/>Reporting-ready]
+```
+
+## Automation Flow
+
+The ingestion process runs on a daily schedule and updates the analytics workflow with minimal manual effort. That made the project feel closer to a production-style pipeline than a one-time batch exercise.
+
+```mermaid
+flowchart LR
+    A[GitHub Actions<br/>Daily schedule] --> B[Download source files]
+    B --> C[Upload to Azure Data Lake Bronze]
+    C --> D[Trigger Synapse ETL]
+    D --> E[Refresh Silver and Gold layers]
+    E --> F[Serve dashboard-ready outputs]
 ```
 
 ## What I Built
 
 - Ingested 59 Parquet files containing 8.7 million Bitcoin transactions from AWS S3.
-- Implemented a Medallion Architecture with Bronze, Silver, and Gold layers in Azure Data Lake Gen2.
-- Built PySpark transformations for cleaning, feature engineering, and annual aggregation in Azure Synapse.
-- Added GitHub Actions automation to trigger the pipeline on a daily schedule.
-- Used Kafka and Airflow to simulate streaming and orchestrate pipeline tasks.
+- Implemented Bronze, Silver, and Gold layers in Azure Data Lake Gen2.
+- Built PySpark transformations for cleaning, feature engineering, and yearly aggregation in Azure Synapse.
+- Added GitHub Actions for scheduled daily pipeline triggers.
+- Used Kafka and Airflow to simulate streaming and orchestrate workflow tasks.
 - Published analytics outputs through a public Streamlit dashboard and a Power BI report.
 
-## Key Decisions
+## Key Engineering Decisions
 
-This project was shaped by a few important engineering choices. I used Azure for storage and transformation to keep the analytics workflow centralized, while still ingesting from AWS S3 to demonstrate cross-cloud movement. I also adopted Medallion Architecture to preserve raw data, simplify debugging, and produce a lightweight Gold layer for dashboard performance.
+I used Azure for storage and transformation while sourcing the data from AWS S3 to demonstrate cross-cloud data movement without fragmenting the analytics workflow. I also adopted Medallion Architecture so raw data could be preserved, transformations could stay modular, and reporting outputs could remain lightweight.
 
-Publishing both Streamlit and Power BI outputs was another deliberate choice. Streamlit made the project easy to share publicly and update in Python, while Power BI provided a more familiar BI-style interface for non-technical viewers.
+Publishing both Streamlit and Power BI was a deliberate product decision. Streamlit made the project easy to share publicly and extend in Python, while Power BI made the insights easier to consume in a more familiar BI format.
 
 ## Results
 
-- Processed 8.7 million Bitcoin transactions from raw source files.
-- Reduced the final reporting dataset to a compact Gold layer for fast dashboard queries.
-- Identified 2017 as the peak fee year, with average fees reaching 3.22%.
-- Measured 484% transaction growth from 2013 to 2017.
-- Showed that fee percentage had almost no correlation with transaction value alone, pointing instead to network congestion as the more important driver.
+| Metric | Result |
+|---|---|
+| Transactions processed | 8.7M |
+| Bronze layer rows | 8,781,456 |
+| Silver layer rows | 8,772,036 |
+| Automation | Daily scheduled pipeline |
+| Peak fee year | 2017 |
+| Peak average fee | 3.22% |
+| Transaction growth | 484% from 2013 to 2017 |
 
 ## What I Learned
 
-This project reinforced the importance of designing pipelines in layers rather than transforming data directly into dashboard outputs. It also showed that technical projects become much stronger when they connect infrastructure decisions to a real analytical question and present the result in a form that non-technical users can understand.
+This project reinforced the value of layered pipeline design instead of transforming raw data directly into dashboard outputs. It also showed that technical projects become stronger when infrastructure decisions are tied to a clear analytical question and delivered in a format that non-technical users can understand.
 
-## Links
+---
 
-- [Live Streamlit Dashboard](https://btc-etl-live.streamlit.app/)
-- [GitHub Repository](https://github.com/Mubashirdev09/bitcoin-blockchain-etl-pipeline)
-- [LinkedIn](https://www.linkedin.com/in/rahman09/)
+**🐙 [GitHub Repository](https://github.com/Mubashirdev09/bitcoin-blockchain-etl-pipeline)**  
+**🚀 [Live Dashboard](https://btc-etl-live.streamlit.app/)**

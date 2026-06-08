@@ -1,22 +1,12 @@
 ---
 /**
  * Projects Index Page
- * 
- * Lists all projects as case studies with impact summaries. Projects are displayed
+ *
+ * Lists selected projects as case studies with impact summaries. Projects are displayed
  * in a prioritized order: custom order (if specified) takes precedence, otherwise
  * sorted by year (most recent first). Featured projects are highlighted.
- * 
- * Features:
- * - Queries all projects from content collection
- * - Smart sorting: custom order → year (descending)
- * - Displays project and featured count statistics
- * - Uses ProjectCard component for consistent presentation
- * - SEO optimization
- * - Empty state handling
- * 
+ *
  * Route: /projects
- * 
- * @page
  */
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -24,81 +14,189 @@ import SEO from '../../components/SEO.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
 import PageStats from '../../components/PageStats.astro';
 import { getCollection } from 'astro:content';
-import { pagesConfig } from '../../pages.config';
 
-/**
- * Queries all projects from the content collection
- */
 const allProjects = await getCollection('projects');
 
-/**
- * Sorts projects with intelligent prioritization
- * 
- * Sorting logic:
- * 1. If both projects have an 'order' field, sort by order (ascending)
- * 2. Projects with 'order' field are prioritized over those without
- * 3. Projects without 'order' are sorted by year (descending - newest first)
- * 
- * This allows manual curation of featured projects while maintaining
- * chronological order for others.
- */
 const sortedProjects = allProjects.sort((a, b) => {
-  // If both have order field, sort by order
   if (a.data.order !== undefined && b.data.order !== undefined) {
     return a.data.order - b.data.order;
   }
-  // If only one has order, prioritize it
   if (a.data.order !== undefined) return -1;
   if (b.data.order !== undefined) return 1;
-  // Otherwise sort by year (descending)
   return b.data.year - a.data.year;
 });
 
-/**
- * Total count of projects for statistics display
- */
 const totalProjects = sortedProjects.length;
+const featuredCount = sortedProjects.filter((p) => p.data.featured).length;
 
-/**
- * Count of featured projects for statistics display
- */
-const featuredCount = sortedProjects.filter(p => p.data.featured).length;
+const pageTitle = 'Selected Projects';
+const pageDescription =
+  'Selected data engineering and analytics projects by Syed Abdul Rahman, focused on reliable pipelines, cloud workflows, and analytics-ready systems.';
+const pageIntro =
+  'A curated set of data engineering projects focused on scalable pipelines, cloud workflows, and analytics-ready delivery.';
+const pageSupporting =
+  'Each case study highlights the problem, architecture, implementation decisions, and practical outcome behind the solution.';
+const statsText = `${totalProjects} project${totalProjects === 1 ? '' : 's'} · ${featuredCount} featured ${featuredCount === 1 ? 'case study' : 'case studies'}`;
 ---
 
 <BaseLayout>
-  <SEO 
+  <SEO
     slot="head"
-    title={pagesConfig.projects.title}
-    description={pagesConfig.projects.description}
+    title={pageTitle}
+    description={pageDescription}
     type="website"
   />
 
-  <main class="page-container">
+  <main class="page-container projects-page">
     <header class="page-header">
-      <h1 class="page-title">{pagesConfig.projects.heading}</h1>
-      <p class="page-intro">
-        {pagesConfig.projects.intro}
-      </p>
-      <PageStats text={`${totalProjects} projects · ${featuredCount} featured`} />
+      <h1 class="page-title">{pageTitle}</h1>
+
+      <div class="page-copy">
+        <p class="page-intro">
+          {pageIntro}
+        </p>
+        <p class="page-supporting">
+          {pageSupporting}
+        </p>
+      </div>
+
+      <div class="page-meta-row">
+        <PageStats text={statsText} />
+      </div>
     </header>
 
     {sortedProjects.length > 0 ? (
-      <div class="card-list">
-        {sortedProjects.map((project) => (
-          <ProjectCard
-            title={project.data.title}
-            slug={project.id}
-            outcomeSummary={project.data.outcomeSummary}
-            role={project.data.role}
-            year={project.data.year}
-            techStack={project.data.techStack}
-            featured={project.data.featured}
-            status={project.data.status}
-          />
-        ))}
-      </div>
+      <section class="projects-section" aria-label="Project case studies">
+        <div class="card-list">
+          {sortedProjects.map((project) => (
+            <ProjectCard
+              title={project.data.title}
+              slug={project.id}
+              outcomeSummary={project.data.outcomeSummary}
+              role={project.data.role}
+              year={project.data.year}
+              techStack={project.data.techStack}
+              featured={project.data.featured}
+              status={project.data.status}
+            />
+          ))}
+        </div>
+      </section>
     ) : (
-      <p class="empty-state">No projects available yet.</p>
+      <div class="empty-state">
+        <p>No projects available yet.</p>
+        <p class="empty-state-sub">
+          This page will showcase selected work in data engineering, cloud analytics, and pipeline development.
+        </p>
+      </div>
     )}
   </main>
+
+  <style>
+    .projects-page {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4.75rem;
+    }
+
+    .page-header {
+      padding: 2.4rem 0 1.45rem;
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: 1.4rem;
+    }
+
+    .page-title {
+      margin: 0 0 1rem;
+      font-size: clamp(2.2rem, 4.6vw, 3.2rem);
+      line-height: 1.04;
+      font-weight: 750;
+      letter-spacing: -0.035em;
+      color: var(--color-text);
+    }
+
+    .page-copy {
+      max-width: 760px;
+    }
+
+    .page-intro {
+      margin: 0 0 0.6rem;
+      font-size: 1.04rem;
+      line-height: 1.75;
+      color: var(--color-text);
+    }
+
+    .page-supporting {
+      margin: 0;
+      font-size: 0.97rem;
+      line-height: 1.72;
+      color: var(--color-text-secondary);
+    }
+
+    .page-meta-row {
+      display: flex;
+      align-items: center;
+      margin-top: 1rem;
+      color: var(--color-text-muted);
+    }
+
+    .page-meta-row :global(*) {
+      margin: 0;
+    }
+
+    .projects-section {
+      padding-top: 0.1rem;
+    }
+
+    .card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .empty-state {
+      padding: 2.5rem 0;
+      color: var(--color-text-muted);
+    }
+
+    .empty-state p {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .empty-state-sub {
+      margin-top: 0.5rem;
+      color: var(--color-text-secondary);
+    }
+
+    @media (max-width: 768px) {
+      .projects-page {
+        padding: 0 1rem 4rem;
+      }
+
+      .page-header {
+        padding: 2rem 0 1.2rem;
+        margin-bottom: 1.2rem;
+      }
+
+      .page-title {
+        font-size: 2rem;
+        margin-bottom: 0.85rem;
+      }
+
+      .page-intro,
+      .page-supporting {
+        font-size: 1rem;
+        line-height: 1.72;
+      }
+
+      .page-meta-row {
+        margin-top: 0.95rem;
+      }
+
+      .card-list {
+        gap: 1rem;
+      }
+    }
+  </style>
 </BaseLayout>
